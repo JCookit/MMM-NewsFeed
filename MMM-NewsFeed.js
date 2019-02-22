@@ -20,13 +20,11 @@ Module.register("MMM-NewsFeed", {
 		showPublishDate: true,
 		showImage: true,
 		showDescription: true,
-		wrapTitle: true,
-		wrapDescription: true,
 		truncDescription: true,
-		lengthDescription: 400,
+		lengthDescription: 500,
 		hideLoading: false,
 		reloadInterval: 5 * 60 * 1000, // every 5 minutes
-		updateInterval: 5 * 1000, //every 5 seconds
+		updateInterval: 30 * 1000, // every 30 seconds
 		animationSpeed: 2.5 * 1000,
 		maxNewsItems: 0, // 0 for unlimited
 		ignoreOldItems: false,
@@ -115,13 +113,13 @@ Module.register("MMM-NewsFeed", {
 			}
 
 			const title = document.createElement("div");
-			title.className = "bright medium light" + (!this.config.wrapTitle ? " no-wrap" : "");
+			title.className = "bright medium light";
 			title.innerHTML = this.newsItems[this.activeItem].title;
 			textPanel.appendChild(title);
 
 			if (this.config.showDescription) {
 				const description = document.createElement("div");
-				description.className = "small light" + (!this.config.wrapDescription ? " no-wrap" : "");
+				description.className = "small light";
 				const txtDesc = this.newsItems[this.activeItem].description;
 				description.innerHTML = (this.config.truncDescription ? (txtDesc.length > this.config.lengthDescription ? txtDesc.substring(0, this.config.lengthDescription) + "..." : txtDesc) : txtDesc);
 				textPanel.appendChild(description);
