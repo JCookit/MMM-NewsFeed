@@ -1,0 +1,23 @@
+{
+  "name": "MMM-NewsFeed",
+  "version": "1.0.0",
+  "description": "Todo: Insert description here!",
+  "main": "MMM-NewsFeed.js",
+  "author": "Stefan Nachtrab",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "get-urls": "^8.0.0",
+    "sjcl": "^1.0.7"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-eslint": "latest",
+    "grunt-jsonlint": "latest",
+    "grunt-markdownlint": "^1.0.13",
+    "grunt-stylelint": "latest",
+    "grunt-yamllint": "latest",
+    "stylelint-config-standard": "latest",
+    "time-grunt": "latest"
+  }
+}
