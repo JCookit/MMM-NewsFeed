@@ -8,6 +8,42 @@
  * Custom here your css module
  *
  */
+
+/* Content container for image and description side by side */
+.content-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: flex-start;
+}
+
+/* Image panel when beside description */
+.image-panel {
+  flex-shrink: 0;
+  max-width: 120px;
+}
+
+/* News image styling */
+.news-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Description beside image */
+.description-beside-image {
+  flex: 1;
+  line-height: 1.3;
+}
+
+/* Description full width (no image) */
+.description-full-width {
+  margin-top: 8px;
+  line-height: 1.3;
+}
+
+/* Legacy styles for backwards compatibility */
 .parentPanel {
   overflow: auto;
   text-align: center;

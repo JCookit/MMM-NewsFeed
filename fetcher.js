@@ -39,6 +39,9 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 	 */
 
 	const fetchNews = function () {
+
+		console.log('[jc] In fetchNews');
+
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
 		items = [];
@@ -48,20 +51,32 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 		parser.on("item", function (item) {
 			const title = item.title;
 			let description = item.description || item.summary || item.content || "";
-			let imageSearch = item.description + item["content:encoded"] + item.summary + item.content || "";
+			let imageSearch = [
+				item.description,
+				item["content:encoded"],
+				item.summary,
+				item.content,
+				item["media:content"] && item["media:content"].url,
+				item["media:thumbnail"] && item["media:thumbnail"].url
+			].filter(Boolean).join(" ");
 			const pubdate = item.pubdate || item.published || item.updated || item["dc:date"];
 			const url = item.url || item.link || "";
 
-			//console.log("Title: " + title);
+
+			//console.log("[jc] Title: " + title);
 			//console.log("Description: " + description);
-			//console.log("ImageSearch: " + imageSearch);
+			//console.log("[jc] ImageSearch: " + imageSearch);
 			//console.log("Pubdate: " + pubdate);
 			//console.log("Url: " + url);
+			//console.log("[jc] item: " + JSON.stringify(item, null, 2));
 			if (title && pubdate) {
 				const urlMatches = Array.from(getUrls(imageSearch));
 				const qualityUrlMatches = [];
-				urlMatches.filter(match => match.match(/([a-z\-_0-9\/\:\.]*\.(jpg|jpeg|png|gif))/i)).forEach(match => {
-					qualityUrlMatches.push(match.replace(",w=120,", ",w=400,").replace("-thumbsmall-", "-thumb-"))
+				urlMatches.filter(match => match.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?/i)).forEach(match => {
+					qualityUrlMatches.push(
+						match.replace(/(%27|%22|'|")$/, '')
+						    .replace(",w=120,", ",w=400,")
+							.replace("-thumbsmall-", "-thumb-"))
 				});
 				const cleanRegex = /(<([^>]+)>)/ig;
 				description = description.toString().replace(cleanRegex, "");
@@ -73,6 +88,10 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 					images: qualityUrlMatches
 				});
 
+				// if (qualityUrlMatches.length > 0) {
+				// 	console.log("[jc] Found image URLs:", qualityUrlMatches);
+				// }
+
 			} else if (logFeedWarnings) {
 				console.log("Can't parse feed item:");
 				console.log(item);
@@ -83,7 +102,7 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 		});
 
 		parser.on("end", function () {
-			//console.log("end parsing - " + url);
+			console.log("[jc] end parsing - " + url);
 			self.broadcastItems();
 			scheduleTimer();
 		});
@@ -112,7 +131,7 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 	 * Schedule the timer for the next update.
 	 */
 	var scheduleTimer = function () {
-		//console.log('Schedule update timer.');
+		console.log('[jc] Schedule update timer.');
 		clearTimeout(reloadTimer);
 		reloadTimer = setTimeout(function () {
 			fetchNews();

@@ -42,7 +42,7 @@ Module.register("MMM-NewsFeed", {
 		return false;
 	},
 	start: function () {
-		Log.info("Starting module: " + this.name);
+		Log.info("[jc] Starting module: " + this.name);
 
 		// Set locale.
 		moment.locale(config.language);
@@ -51,7 +51,12 @@ Module.register("MMM-NewsFeed", {
 		this.loaded = false;
 		this.activeItem = 0;
 
-		this.registerFeeds();
+		// Delay initial feed registration to ensure node helper is ready
+		const self = this;
+		setTimeout(function() {
+			console.log("[jc] Registering feeds after delay");
+			self.registerFeeds();
+		}, 2000); // 2 second delay
 	},
 	// Override socket notification handler.
 	socketNotificationReceived: function (notification, payload) {
@@ -75,23 +80,9 @@ Module.register("MMM-NewsFeed", {
 		}
 
 		if (this.newsItems.length > 0) {
-			const parentPanel = document.createElement("div");
-			parentPanel.className = "parentPanel";
-			if (this.config.showImage && this.newsItems[this.activeItem].images.length > 0) {
-				const imagePanel = document.createElement("div");
-				imagePanel.className = "imagePanel align-middle";
-				const image = document.createElement("img");
-				image.className = "img-fluid";
-				image.width = 300;
-				image.src = this.newsItems[this.activeItem].images[0];
-				imagePanel.appendChild(image);
-				wrapper.appendChild(imagePanel);
-			}
+			const hasImage = this.config.showImage && this.newsItems[this.activeItem].images.length > 0;
 
-			const textPanel = document.createElement("div");
-			textPanel.className = "textPanel align-middle";
-			wrapper.appendChild(textPanel);
-
+			// Attribution (source and timestamp)
 			if (this.config.showSourceTitle || this.config.showPublishDate) {
 				const sourceAndTimestamp = document.createElement("div");
 				sourceAndTimestamp.className = "light small dimmed";
@@ -109,20 +100,48 @@ Module.register("MMM-NewsFeed", {
 					sourceAndTimestamp.innerHTML += ":";
 				}
 
-				textPanel.appendChild(sourceAndTimestamp);
+				wrapper.appendChild(sourceAndTimestamp);
 			}
 
+			// Headline
 			const title = document.createElement("div");
 			title.className = "bright medium light";
 			title.innerHTML = this.newsItems[this.activeItem].title;
-			textPanel.appendChild(title);
+			wrapper.appendChild(title);
 
-			if (this.config.showDescription) {
-				const description = document.createElement("div");
-				description.className = "small light";
-				const txtDesc = this.newsItems[this.activeItem].description;
-				description.innerHTML = (this.config.truncDescription ? (txtDesc.length > this.config.lengthDescription ? txtDesc.substring(0, this.config.lengthDescription) + "..." : txtDesc) : txtDesc);
-				textPanel.appendChild(description);
+			if (hasImage) {
+				// Container for image and description side by side
+				const contentContainer = document.createElement("div");
+				contentContainer.className = "content-container";
+				
+				// Image
+				const imagePanel = document.createElement("div");
+				imagePanel.className = "image-panel";
+				const image = document.createElement("img");
+				image.className = "news-image";
+				image.src = this.newsItems[this.activeItem].images[0];
+				imagePanel.appendChild(image);
+				contentContainer.appendChild(imagePanel);
+
+				// Description beside image
+				if (this.config.showDescription) {
+					const description = document.createElement("div");
+					description.className = "description-beside-image small light";
+					const txtDesc = this.newsItems[this.activeItem].description;
+					description.innerHTML = (this.config.truncDescription ? (txtDesc.length > this.config.lengthDescription ? txtDesc.substring(0, this.config.lengthDescription) + "..." : txtDesc) : txtDesc);
+					contentContainer.appendChild(description);
+				}
+
+				wrapper.appendChild(contentContainer);
+			} else {
+				// No image - description spans full width
+				if (this.config.showDescription) {
+					const description = document.createElement("div");
+					description.className = "description-full-width small light";
+					const txtDesc = this.newsItems[this.activeItem].description;
+					description.innerHTML = (this.config.truncDescription ? (txtDesc.length > this.config.lengthDescription ? txtDesc.substring(0, this.config.lengthDescription) + "..." : txtDesc) : txtDesc);
+					wrapper.appendChild(description);
+				}
 			}
 
 			if (this.config.hideLoading) {
@@ -145,6 +164,7 @@ Module.register("MMM-NewsFeed", {
 	 */
 	registerFeeds: function () {
 		this.config.feeds.forEach(feed => {
+			console.log("[jc] sending socket notification for:", feed.url);
 			this.sendSocketNotification("MMM-NEWSFEED_ADD_FEED", {
 				feed: feed,
 				config: this.config
@@ -175,6 +195,13 @@ Module.register("MMM-NewsFeed", {
 			const dateB = new Date(b.pubdate);
 			return dateB - dateA;
 		});
+		
+		// Shuffle using Fisher-Yates
+		for (let i = newsItems.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[newsItems[i], newsItems[j]] = [newsItems[j], newsItems[i]];
+		}
+    
 		if (this.config.maxNewsItems > 0) {
 			newsItems = newsItems.slice(0, this.config.maxNewsItems);
 		}

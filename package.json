@@ -8,7 +8,9 @@
   "dependencies": {
     "commander": "^2.19.0",
     "get-urls": "^8.0.0",
-    "sjcl": "^1.0.7"
+    "request": "^2.88.2",
+    "sjcl": "^1.0.7",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "grunt": "latest",
