@@ -40,7 +40,7 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 
 	const fetchNews = function () {
 
-		console.log('[jc] In fetchNews');
+		//console.log('[jc] In fetchNews');
 
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
@@ -102,7 +102,7 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 		});
 
 		parser.on("end", function () {
-			console.log("[jc] end parsing - " + url);
+			//console.log("[jc] end parsing - " + url);
 			self.broadcastItems();
 			scheduleTimer();
 		});
@@ -131,7 +131,7 @@ const Fetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
 	 * Schedule the timer for the next update.
 	 */
 	var scheduleTimer = function () {
-		console.log('[jc] Schedule update timer.');
+		//console.log('[jc] Schedule update timer.');
 		clearTimeout(reloadTimer);
 		reloadTimer = setTimeout(function () {
 			fetchNews();

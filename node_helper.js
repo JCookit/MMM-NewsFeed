@@ -19,7 +19,7 @@ module.exports = NodeHelper.create({
 	// Subclass socketNotificationReceived received.
 	socketNotificationReceived: function (notification, payload) {
 		if (notification === "MMM-NEWSFEED_ADD_FEED") {
-			console.log("[jc] socketNotificationReceived: " + notification);
+			//console.log("[jc] socketNotificationReceived: " + notification);
 			this.createFetcher(payload.feed, payload.config);
 			return;
 		}
@@ -46,7 +46,7 @@ module.exports = NodeHelper.create({
 
 		let fetcher;
 		if (typeof self.fetchers[url] === "undefined") {
-			console.log("[jc] Create new news fetcher for url: " + url + " - Interval: " + reloadInterval);
+			//console.log("[jc] Create new news fetcher for url: " + url + " - Interval: " + reloadInterval);
 			fetcher = new Fetcher(url, reloadInterval, encoding, config.logFeedWarnings);
 
 			fetcher.onReceive(function (fetcher) {
@@ -62,7 +62,7 @@ module.exports = NodeHelper.create({
 
 			self.fetchers[url] = fetcher;
 		} else {
-			console.log("[jc] Use existing news fetcher for url: " + url);
+			//console.log("[jc] Use existing news fetcher for url: " + url);
 			fetcher = self.fetchers[url];
 			fetcher.setReloadInterval(reloadInterval);
 			fetcher.broadcastItems();

@@ -25,7 +25,7 @@ Module.register("MMM-NewsFeed", {
 		hideLoading: false,
 		reloadInterval: 5 * 60 * 1000, // every 5 minutes
 		updateInterval: 30 * 1000, // every 30 seconds
-		animationSpeed: 2.5 * 1000,
+		animationSpeed: 1.0 * 1000,
 		maxNewsItems: 0, // 0 for unlimited
 		ignoreOldItems: false,
 		ignoreOlderThan: 2 * 24 * 60 * 60 * 1000, // 2 days
@@ -42,7 +42,7 @@ Module.register("MMM-NewsFeed", {
 		return false;
 	},
 	start: function () {
-		Log.info("[jc] Starting module: " + this.name);
+		Log.info("[jc][news] Starting module: " + this.name);
 
 		// Set locale.
 		moment.locale(config.language);
@@ -50,13 +50,65 @@ Module.register("MMM-NewsFeed", {
 		this.newsItems = [];
 		this.loaded = false;
 		this.activeItem = 0;
+		this.updateTimer = null;  // Store the update interval timer
+		this.isVisible = false;   // Track visibility state
 
 		// Delay initial feed registration to ensure node helper is ready
 		const self = this;
 		setTimeout(function() {
-			console.log("[jc] Registering feeds after delay");
+			console.log("[jc][news] Registering feeds after delay");
 			self.registerFeeds();
 		}, 2000); // 2 second delay
+	},
+
+	// Listen for MMM-pages notifications
+	notificationReceived: function (notification, payload, sender) {
+		// We don't need to handle page change notifications!
+		// MMM-pages will call show() and hide() for us automatically
+	},
+
+	// Override the show method (called when module becomes visible)
+	show: function(speed, callback) {
+		console.log("[jc][news] Module show() called - resuming updates");
+		this.resumeUpdates();
+		
+		// Call the parent show method
+		Module.prototype.show.call(this, speed, callback);
+	},
+
+	// Override the hide method (called when module becomes hidden)  
+	hide: function(speed, callback) {
+		console.log("[jc][news] Module hide() called - pausing updates");
+		this.pauseUpdates();
+
+		// see if this works; increase the activeItem on hide, so the next show starts with the next item
+		this.activeItem++;
+		
+		// Call the parent hide method
+		Module.prototype.hide.call(this, speed, callback);
+	},
+
+	// Pause news updates
+	pauseUpdates: function () {
+		console.log("[jc][news] Pausing news updates - timer exists:", !!this.updateTimer);
+		if (this.updateTimer) {
+			clearInterval(this.updateTimer);
+			this.updateTimer = null;
+			console.log("[jc][news] Timer cleared successfully");
+		} else {
+			console.log("[jc][news] No timer to clear");
+		}
+	},
+
+	// Resume news updates
+	resumeUpdates: function () {
+		console.log("[jc][news] Resuming news updates - loaded:", this.loaded, "timer exists:", !!this.updateTimer);
+		if (this.loaded && !this.updateTimer) {
+			console.log("[jc][news] Starting new update timer");
+			this.scheduleUpdateInterval();
+		} else {
+			console.log("[jc][news] Not starting timer - loaded:", this.loaded, "timer exists:", !!this.updateTimer);
+		}
 	},
 	// Override socket notification handler.
 	socketNotificationReceived: function (notification, payload) {
@@ -164,7 +216,7 @@ Module.register("MMM-NewsFeed", {
 	 */
 	registerFeeds: function () {
 		this.config.feeds.forEach(feed => {
-			console.log("[jc] sending socket notification for:", feed.url);
+			//console.log("[jc] sending socket notification for:", feed.url);
 			this.sendSocketNotification("MMM-NEWSFEED_ADD_FEED", {
 				feed: feed,
 				config: this.config
@@ -244,12 +296,22 @@ Module.register("MMM-NewsFeed", {
 	scheduleUpdateInterval: function () {
 		const self = this;
 
+		console.log("[jc][news] scheduleUpdateInterval called - clearing existing timer");
+		// Clear any existing timer first
+		if (this.updateTimer) {
+			clearInterval(this.updateTimer);
+		}
+
 		self.updateDom(self.config.animationSpeed);
 
-		setInterval(function () {
+		console.log("[jc][news] Setting new update timer with interval:", this.config.updateInterval);
+		this.updateTimer = setInterval(function () {
+			console.log("[jc][news] Timer fired - advancing to next item");
 			self.activeItem++;
 			self.updateDom(self.config.animationSpeed);
 		}, this.config.updateInterval);
+		
+		console.log("[jc][news] Timer set successfully, ID:", this.updateTimer);
 	},
 	getStyles: function () {
 		return [
